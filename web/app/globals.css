@@ -98,3 +98,7 @@ tr.dim td { opacity: 0.45; }
   .kpi { border-right: 0; border-bottom: 1px solid var(--line); }
   .shell { padding: 0 16px 48px; }
 }
+button.cite { border: 0; cursor: pointer; line-height: 1.6; }
+button.cite:hover { color: var(--accent); }
+tr.focused td { background: rgba(165, 139, 255, .12); }
+tr.focused td:first-child { box-shadow: inset 2px 0 0 var(--violet); }

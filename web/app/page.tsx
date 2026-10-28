@@ -21,6 +21,13 @@ export default function Home() {
   const [research, setResearch] = useState<Research | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [focused, setFocused] = useState<string | null>(null);
+
+  // a citation jumps to the purchase it cites
+  const showSource = (id: string) => {
+    setFocused(id);
+    document.getElementById(`row-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   const run = useCallback(async (q: string) => {
     setBusy(true);
@@ -71,7 +78,8 @@ export default function Home() {
                   <div className="row" style={{ marginTop: 10 }}>
                     <span className="label">{t("sources")}</span>
                     {answer.citations.map((c) => (
-                      <span key={c.id} className="cite" title={`${c.description} · ${c.agency} · ${c.date}`}>{c.id} · {brl(c.comparable_price)}</span>
+                      <button key={c.id} type="button" className="cite" onClick={() => showSource(c.id)}
+                        title={`${c.description} · ${c.agency} · ${c.date}`}>{c.id} · {brl(c.comparable_price)}</button>
                     ))}
                   </div>
                 )}
@@ -129,7 +137,7 @@ export default function Home() {
                 {[...research.items]
                   .sort((a, b) => Number(!a.kept) * 2 + Number(a.outlier) - (Number(!b.kept) * 2 + Number(b.outlier)))
                   .slice(0, 25).map((it) => (
-                  <tr key={it.id} className={it.kept && !it.outlier ? "" : "dim"}>
+                  <tr key={it.id} id={`row-${it.id}`} className={[it.kept && !it.outlier ? "" : "dim", focused === it.id ? "focused" : ""].join(" ").trim() || undefined}>
                     <td className="mono">{it.id}</td>
                     <td>{it.description}<div className="mono muted" style={{ fontSize: 11 }}>{it.agency} · {it.date}</div></td>
                     <td className="mono">{it.package}</td>
