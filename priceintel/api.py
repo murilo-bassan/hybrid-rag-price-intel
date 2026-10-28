@@ -35,11 +35,12 @@ def research(q: str = Query(min_length=2, max_length=120), mode: Literal["bm25",
 class AskBody(BaseModel):
     question: str = Field(min_length=2, max_length=300)
     state: str | None = None
+    lang: Literal["en", "pt"] = "en"
 
 
 @app.post("/v1/ask")
 def ask_endpoint(body: AskBody) -> dict[str, Any]:
-    out = ask(default_engine(), body.question, body.state)
+    out = ask(default_engine(), body.question, body.state, body.lang)
     if "research" in out:
         out["research"] = _public(out["research"])
     return out

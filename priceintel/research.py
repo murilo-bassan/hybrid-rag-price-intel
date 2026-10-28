@@ -116,31 +116,48 @@ def extract_product(question: str) -> str:
     return re.sub(r"\s+", " ", q).strip()
 
 
-def ask(engine: Engine, question: str, state: str | None = None) -> dict[str, Any]:
-    """Grounded answer: every number comes from the research result and cites record ids."""
+def _brl(v: float, lang: str) -> str:
+    s = f"{v:,.2f}"
+    return "R$ " + (s.replace(",", "X").replace(".", ",").replace("X", ".") if lang == "pt" else s)
+
+
+UNIT_PT = {"un": "unidade", "kg": "kg", "l": "litro", "resma": "resma"}
+
+
+def ask(engine: Engine, question: str, state: str | None = None, lang: str = "en") -> dict[str, Any]:
+    """Grounded answer: every number comes from the research result and cites record ids. `lang`: "en" or "pt"."""
+    pt = lang == "pt"
     product = extract_product(question)
     lexical = engine.bm25.search(product, 1)
     dense_top = engine.dense.search(product, 1)
     # Out-of-catalog guard: no shared term AND weak semantic similarity → don't invent a price.
     if len(tokens(product)) == 0 or (not lexical and (not dense_top or dense_top[0][1] < MIN_DENSE_SIM)):
-        return {"route": "help", "answer": "Tell me which product to price, e.g. “quanto custa papel A4?” or "
-                "“price of a 24-inch monitor”.", "citations": []}
+        return {"route": "help", "citations": [], "answer":
+                "Diga qual produto pesquisar, por exemplo “quanto custa papel A4?” ou “preço de monitor 24 polegadas”." if pt else
+                "Tell me which product to price, e.g. “quanto custa papel A4?” or “price of a 24-inch monitor”."}
     r = engine.research(product, Options(state=state))
     s = r["stats"]
     if not s["median"]:
-        return {"route": "no_data", "product": product, "answer": f"I found no comparable purchases for “{product}”.",
-                "citations": [], "research": r}
+        return {"route": "no_data", "product": product, "citations": [], "research": r, "answer":
+                f"Não encontrei compras comparáveis para “{product}”." if pt else f"I found no comparable purchases for “{product}”."}
     used = [it for it in r["items"] if it["kept"] and not it["outlier"]]
     closest = sorted(used, key=lambda it: abs(it["comparable_price"] - s["median"]))[:3]
     rejected = sum(1 for it in r["items"] if not it["kept"])
-    unit = r["base_unit"]
-    answer = (f"Public buyers paid a median of R$ {s['median']:,.2f} per {unit} for “{product}” "
-              f"(middle half between R$ {s['p25']:,.2f} and R$ {s['p75']:,.2f}), from {s['n_used']} comparable purchases. "
-              f"{rejected} retrieved items were set aside as not being the product or using another unit, and "
-              f"{len(s['outliers'])} prices were excluded as outliers. "
-              f"Closest to the median: {', '.join(c['id'] for c in closest)}.")
-    if s["low_confidence"]:
-        answer += " The sample is small — treat this as indicative."
+    unit, ids = r["base_unit"], ", ".join(c["id"] for c in closest)
+    if pt:
+        answer = (f"Órgãos públicos pagaram uma mediana de {_brl(s['median'], lang)} por {UNIT_PT.get(unit, unit)} por “{product}” "
+                  f"(metade central entre {_brl(s['p25'], lang)} e {_brl(s['p75'], lang)}), com base em {s['n_used']} compras comparáveis. "
+                  f"{rejected} itens recuperados foram descartados por não serem o produto ou usarem outra unidade, e "
+                  f"{len(s['outliers'])} preços foram excluídos como outliers. Mais próximos da mediana: {ids}.")
+        if s["low_confidence"]:
+            answer += " A amostra é pequena — trate como indicativo."
+    else:
+        answer = (f"Public buyers paid a median of {_brl(s['median'], lang)} per {unit} for “{product}” "
+                  f"(middle half between {_brl(s['p25'], lang)} and {_brl(s['p75'], lang)}), from {s['n_used']} comparable purchases. "
+                  f"{rejected} retrieved items were set aside as not being the product or using another unit, and "
+                  f"{len(s['outliers'])} prices were excluded as outliers. Closest to the median: {ids}.")
+        if s["low_confidence"]:
+            answer += " The sample is small — treat this as indicative."
     return {"route": "price_research", "product": product, "answer": answer,
             "citations": [{"id": c["id"], "description": c["description"], "comparable_price": c["comparable_price"],
                            "agency": c["agency"], "date": c["date"]} for c in closest], "research": r}
