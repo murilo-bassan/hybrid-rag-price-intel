@@ -85,7 +85,7 @@ python -m uvicorn priceintel.api:app --port 8900
 cd web && npm ci && npm run build && npm start   # → http://localhost:3000
 ```
 
-Everything runs offline. For an LLM judge: `PI_JUDGE=llm PI_JUDGE_MODEL=... LLM_API_KEY=...`
+The default judge is rule-based and explains every rejection. For an LLM judge: `PI_JUDGE=llm PI_JUDGE_MODEL=... LLM_API_KEY=...`
 from your environment — no key is, or should be, in the repository. Full stack: `docker compose up --build`.
 
 All data is synthetic; agencies, cities and suppliers are fictional.
