@@ -1,0 +1,10 @@
+[project]
+name = "hybrid-rag-price-intel"
+version = "0.1.0"
+description = "Hybrid retrieval (BM25 + dense/pgvector + RRF), LLM-as-judge and robust statistics for public price research."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Murilo Bassan" }]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
