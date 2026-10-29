@@ -5,13 +5,14 @@ import type { EvalReport } from "@/lib/types";
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 
-const PIPELINE_PT: Record<string, string> = {
-  "raw: bm25, package prices, no judge, no outlier filter": "bruto: bm25, preço da embalagem, sem juiz, sem filtro de outlier",
-  "+ unit normalization": "+ normalização de unidade",
-  "+ judge": "+ juiz",
-  "+ outlier filter": "+ filtro de outliers",
-  "+ hybrid retrieval (full pipeline)": "+ busca híbrida (pipeline completo)",
+const PIPELINE: Record<string, [string, string]> = {
+  "raw: bm25, package prices, no judge, no outlier filter": ["plain word search and average", "só busca por palavras e média"],
+  "+ unit normalization": ["+ unit prices", "+ preço por unidade"],
+  "+ judge": ["+ remove items that aren't the product", "+ remover o que não é o produto"],
+  "+ outlier filter": ["+ ignore prices typed wrong", "+ ignorar preços digitados errado"],
+  "+ hybrid retrieval (full pipeline)": ["+ search by words and meaning (complete)", "+ busca por palavras e sentido (completo)"],
 };
+const MODE: Record<string, [string, string]> = { bm25: ["by words", "por palavras"], dense: ["by meaning", "por sentido"], hybrid: ["both", "os dois"] };
 
 export default function EvalView({ report }: { report: EvalReport | null }) {
   const { lang, t } = useLang();
@@ -23,24 +24,23 @@ export default function EvalView({ report }: { report: EvalReport | null }) {
   return (
     <main className="grid">
       <section>
-        <div className="label">{t("measured against hidden ground truth")}</div>
-        <h1 style={{ font: "600 34px/1.1 var(--display)", letterSpacing: "-.02em", margin: "8px 0" }}>
-          {t("Every stage has to")} <span className="accent">{t("earn its place.")}</span>
+        <h1 style={{ font: "600 28px/1.1 var(--display)", letterSpacing: "-.03em", margin: "0 0 8px" }}>
+          {t("Each step has to prove it helps")}
         </h1>
-        <p className="muted" style={{ maxWidth: 760 }}>
+        <p className="muted" style={{ maxWidth: 760, margin: 0 }}>
           {pt
-            ? `${report.records} compras sintéticas carregam a categoria e o preço reais, então a qualidade da busca e o erro de preço são calculados, não chutados. ${report.golden_queries} consultas de busca (erros de digitação, sinônimos, distratores) · ${report.price_queries} consultas de preço. Os mesmos números barram o CI.`
-            : `${report.records} synthetic purchases carry their true category and true price, so retrieval quality and price error are computed, not guessed. ${report.golden_queries} retrieval queries (typos, synonyms, distractors) · ${report.price_queries} price queries. The same numbers gate CI.`}
+            ? `O conjunto de teste tem ${report.records} compras inventadas em que o preço certo é conhecido. Assim dá para medir o erro de verdade, sem achismo: ${report.golden_queries} buscas (com erros de digitação e sinônimos) e ${report.price_queries} perguntas de preço. Se algum número piorar, o CI falha.`
+            : `The test set has ${report.records} made-up purchases where the right price is known, so the error is measured instead of guessed: ${report.golden_queries} searches (with typos and synonyms) and ${report.price_queries} price questions. If any number gets worse, CI fails.`}
         </p>
       </section>
 
       <section className="card">
-        <header><span className="label">{t("price estimate — ablation")}</span><span className="mono muted">{t("absolute % error of the median vs the true price")}</span></header>
+        <header><span className="label">{t("Price error, step by step")}</span><span className="muted">{t("how far the typical price lands from the true price")}</span></header>
         <table>
-          <thead><tr><th>{t("pipeline")}</th><th>{t("median error")}</th><th>{t("worst error")}</th><th style={{ width: "34%" }}></th><th>{t("within 10%")}</th></tr></thead>
+          <thead><tr><th>{t("Steps on")}</th><th>{t("Typical error")}</th><th>{t("Worst error")}</th><th style={{ width: "30%" }}></th><th>{t("Within 10%")}</th></tr></thead>
           <tbody>
             {report.price.map((p, i) => {
-              const label = pt ? PIPELINE_PT[p.pipeline] ?? p.pipeline : p.pipeline;
+              const label = PIPELINE[p.pipeline]?.[pt ? 1 : 0] ?? p.pipeline;
               return (
                 <tr key={p.pipeline}>
                   <td>{i === report.price.length - 1 ? <b>{label}</b> : label}</td>
@@ -56,19 +56,19 @@ export default function EvalView({ report }: { report: EvalReport | null }) {
       </section>
 
       <section className="card">
-        <header><span className="label">{t("retrieval")}</span><span className="mono muted">{t("relevant = same true category")}</span></header>
+        <header><span className="label">{t("Search quality")}</span><span className="muted">{t("a result counts as right when it's the same kind of product")}</span></header>
         <table>
-          <thead><tr><th>{t("mode")}</th>{metrics.map((m) => <th key={m}>{m}</th>)}</tr></thead>
+          <thead><tr><th>{t("Search type")}</th>{metrics.map((m) => <th key={m}>{m}</th>)}</tr></thead>
           <tbody>
             {Object.entries(report.retrieval).map(([mode, m]) => (
-              <tr key={mode}><td className="mono">{mode}</td>{metrics.map((k) => <td key={k} className="mono">{m[k].toFixed(3)}</td>)}</tr>
+              <tr key={mode}><td>{MODE[mode]?.[pt ? 1 : 0] ?? mode}</td>{metrics.map((k) => <td key={k} className="mono">{m[k].toFixed(3)}</td>)}</tr>
             ))}
           </tbody>
         </table>
         <div className="body muted" style={{ fontSize: 13 }}>
           {pt
-            ? "O denso acerta tudo aqui porque as descrições sintéticas vêm de templates; em dados reais de vocabulário aberto, o BM25 carrega tokens de especificação (\"85a\", \"i5\", \"75g\") que os n-gramas com hash borram — por isso o híbrido (RRF) em produção, e os dois braços medidos separadamente."
-            : "Dense is perfect here because synthetic descriptions come from templates; on open-vocabulary data BM25 carries spec tokens (\"85a\", \"i5\", \"75g\") that hashed n-grams blur — hence hybrid (RRF) in production, and both arms measured separately."}
+            ? "A busca por sentido acerta tudo aqui porque as descrições de teste seguem modelos fixos. Em dados reais, a busca por palavras pega detalhes como \"85a\", \"i5\" ou \"75g\" que a busca por sentido perde. Por isso o sistema usa as duas juntas."
+            : "Search by meaning gets everything right here because the test descriptions follow fixed templates. On real data, word search catches details like \"85a\", \"i5\" or \"75g\" that meaning search misses. That's why the app combines both."}
         </div>
       </section>
     </main>

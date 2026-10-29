@@ -6,6 +6,29 @@ export type Lang = "en" | "pt";
 
 // English strings are the keys; PT-BR translations below.
 const PT: Record<string, string> = {
+  "Public price search": "Busca de preços públicos", Search: "Buscar", Evaluation: "Avaliação",
+  "How much did the government pay?": "Quanto o governo pagou?",
+  "Ask about any product. The search skips items that only look similar, turns boxes and packs into unit prices and ignores prices typed in wrong. Every number links to the purchases behind it.":
+    "Pergunte sobre qualquer produto. A busca ignora itens só parecidos, converte caixas e pacotes em preço por unidade e descarta preços digitados errado. Cada número leva às compras de onde saiu.",
+  "Ask about a product": "Pergunte sobre um produto", "searching…": "buscando…", Examples: "Exemplos", "Based on": "Com base em",
+  "Try turning a step off": "Experimente desligar uma etapa", "step off": "etapa desligada",
+  "by words": "por palavras", "by meaning": "por sentido", both: "os dois",
+  "Convert boxes and packs to unit price": "Converter caixas e pacotes em preço por unidade",
+  "Remove items that aren't the product": "Remover itens que não são o produto",
+  "Ignore prices typed in wrong": "Ignorar preços digitados errado",
+  "Turn a step off and watch the estimate get worse. The Evaluation page measures this on test data.":
+    "Desligue uma etapa e veja a estimativa piorar. A página Avaliação mede isso com dados de teste.",
+  "Typical price": "Preço típico", "Most paid between": "A maioria pagou entre", "Purchases used": "Compras usadas", found: "encontradas",
+  "Set aside": "Deixadas de lado", "not the product": "não é o produto", "typed wrong": "digitado errado",
+  "Every price found": "Todos os preços encontrados", "Purchases found": "Compras encontradas", Record: "Registro",
+  Description: "Descrição", Package: "Embalagem", "Price paid": "Preço pago", State: "UF", Result: "Resultado",
+  "Each step has to prove it helps": "Cada etapa precisa provar que ajuda",
+  "Price error, step by step": "Erro de preço, etapa por etapa",
+  "how far the typical price lands from the true price": "o quanto o preço típico fica longe do preço certo",
+  "Steps on": "Etapas ligadas", "Typical error": "Erro típico", "Worst error": "Pior erro", "Within 10%": "Dentro de 10%",
+  "Search quality": "Qualidade da busca", "a result counts as right when it's the same kind of product": "um resultado conta como certo quando é o mesmo tipo de produto",
+  "Search type": "Tipo de busca",
+  "This answer uses every step. The numbers below follow your switches.": "Esta resposta usa todas as etapas. Os números abaixo seguem as suas escolhas.",
   research: "pesquisa", evaluation: "avaliação", "hybrid rag · price intelligence": "rag híbrido · inteligência de preços",
   "Ask a price question — PT or EN": "Faça uma pergunta de preço — PT ou EN", "Research ▸": "Pesquisar ▸", "researching…": "pesquisando…",
   try: "teste", sources: "fontes", "pipeline switches": "etapas do pipeline", ablated: "desligada", retrieval: "busca",

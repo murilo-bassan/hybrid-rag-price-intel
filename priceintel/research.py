@@ -145,19 +145,19 @@ def ask(engine: Engine, question: str, state: str | None = None, lang: str = "en
     rejected = sum(1 for it in r["items"] if not it["kept"])
     unit, ids = r["base_unit"], ", ".join(c["id"] for c in closest)
     if pt:
-        answer = (f"Órgãos públicos pagaram uma mediana de {_brl(s['median'], lang)} por {UNIT_PT.get(unit, unit)} por “{product}” "
-                  f"(metade central entre {_brl(s['p25'], lang)} e {_brl(s['p75'], lang)}), com base em {s['n_used']} compras comparáveis. "
-                  f"{rejected} itens recuperados foram descartados por não serem o produto ou usarem outra unidade, e "
-                  f"{len(s['outliers'])} preços foram excluídos como outliers. Mais próximos da mediana: {ids}.")
+        answer = (f"Órgãos públicos pagaram normalmente {_brl(s['median'], lang)} por {UNIT_PT.get(unit, unit)} por “{product}”. "
+                  f"A maioria pagou entre {_brl(s['p25'], lang)} e {_brl(s['p75'], lang)}. A conta usa {s['n_used']} compras parecidas; "
+                  f"{rejected} itens ficaram de fora por não serem o produto ou usarem outra unidade, e "
+                  f"{len(s['outliers'])} preços pareciam digitados errado.")
         if s["low_confidence"]:
-            answer += " A amostra é pequena — trate como indicativo."
+            answer += " Foram poucas compras, então use como referência."
     else:
-        answer = (f"Public buyers paid a median of {_brl(s['median'], lang)} per {unit} for “{product}” "
-                  f"(middle half between {_brl(s['p25'], lang)} and {_brl(s['p75'], lang)}), from {s['n_used']} comparable purchases. "
-                  f"{rejected} retrieved items were set aside as not being the product or using another unit, and "
-                  f"{len(s['outliers'])} prices were excluded as outliers. Closest to the median: {ids}.")
+        answer = (f"Public buyers usually paid {_brl(s['median'], lang)} per {unit} for “{product}”. "
+                  f"Most paid between {_brl(s['p25'], lang)} and {_brl(s['p75'], lang)}. This uses {s['n_used']} similar purchases; "
+                  f"{rejected} items were left out for not being the product or using another unit, and "
+                  f"{len(s['outliers'])} prices looked like typos.")
         if s["low_confidence"]:
-            answer += " The sample is small — treat this as indicative."
+            answer += " There were only a few purchases, so treat this as a rough guide."
     return {"route": "price_research", "product": product, "answer": answer,
             "citations": [{"id": c["id"], "description": c["description"], "comparable_price": c["comparable_price"],
                            "agency": c["agency"], "date": c["date"]} for c in closest], "research": r}

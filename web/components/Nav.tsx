@@ -12,15 +12,15 @@ export default function Nav() {
       <Link href="/" className="brand">
         <span className="mark"><i /><i /><i /><i /></span>
         <span>
-          <span className="label">{t("hybrid rag · price intelligence")}</span>
-          <br />
           <b>priceintel</b>
+          <br />
+          <span className="label">{t("Public price search")}</span>
         </span>
       </Link>
       <div className="links">
-        <Link href="/" data-active={path === "/"}>{t("research")}</Link>
-        <Link href="/eval" data-active={path === "/eval"}>{t("evaluation")}</Link>
-        <a href="http://localhost:8900/docs" target="_blank" rel="noreferrer">api ↗</a>
+        <Link href="/" data-active={path === "/"}>{t("Search")}</Link>
+        <Link href="/eval" data-active={path === "/eval"}>{t("Evaluation")}</Link>
+        <a href="http://localhost:8900/docs" target="_blank" rel="noreferrer">API</a>
         <span className="seg" style={{ marginLeft: 8 }}>
           {(["en", "pt"] as const).map((l) => (
             <button key={l} data-on={lang === l} onClick={() => setLang(l)}>{l.toUpperCase()}</button>

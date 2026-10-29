@@ -68,5 +68,5 @@ def test_api_never_leaks_ground_truth():
 
 def test_ask_in_portuguese(engine):
     a = research.ask(engine, "quanto custa papel A4?", lang="pt")
-    assert a["answer"].startswith("Órgãos públicos pagaram uma mediana de R$ ") and "por resma" in a["answer"]
+    assert a["answer"].startswith("Órgãos públicos pagaram normalmente R$ ") and "por resma" in a["answer"]
     assert research.ask(engine, "oi", lang="pt")["answer"].startswith("Diga qual produto")
